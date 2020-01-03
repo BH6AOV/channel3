@@ -205,7 +205,7 @@ LOCAL void FT_LIN()
 	pixline++;
 }
 
-static uint32_t systimex = 0;
+uint32_t systimex = 0;
 static uint32_t systimein = 0;
 uint32_t last_internal_frametime;
 LOCAL void FT_CLOSE_M()
@@ -226,7 +226,7 @@ LOCAL void FT_CLOSE_M()
 
 void (*CbTable[FT_MAX_d])() = { FT_STA, FT_STB, FT_B, FT_SRA, FT_SRB, FT_LIN, FT_CLOSE_M };
 
-LOCAL void slc_isr(void) {
+LOCAL void slc_isr(void * notused) {
 	//portBASE_TYPE HPTaskAwoken=0;
 	struct sdio_queue *finishedDesc;
 	uint32 slc_intr_status;
@@ -246,7 +246,11 @@ LOCAL void slc_isr(void) {
 		{
 			//*startdma = premodulated_table[0];
 			int lk = 0;
-			if( gline & 1 )
+#ifdef INVERTLINES
+			if( !( gline & 1 ) )
+#else
+			if( ( gline & 1 ) )
+#endif
 				lk = (CbLookup[gline>>1]>>4)&0x0f;
 			else
 				lk = CbLookup[gline>>1]&0x0f;
@@ -314,7 +318,7 @@ void ICACHE_FLASH_ATTR testi2s_init() {
 	SET_PERI_REG_MASK(SLC_RX_LINK, ((uint32)&i2sBufDesc[0]) & SLC_RXLINK_DESCADDR_MASK);
 
 	//Attach the DMA interrupt
-	ets_isr_attach(ETS_SLC_INUM, slc_isr);
+	ets_isr_attach(ETS_SLC_INUM, slc_isr, 0 /* Unused Arg */);
 	//Enable DMA operation intr
 	WRITE_PERI_REG(SLC_INT_ENA,  SLC_RX_EOF_INT_ENA);
 	//clear any interrupt flags that are set

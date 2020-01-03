@@ -18,23 +18,24 @@
 #define procTaskPrio        0
 #define procTaskQueueLen    1
 
-static volatile os_timer_t some_timer;
+static os_timer_t some_timer;
 static struct espconn *pUdpServer;
 
-
-//int ICACHE_FLASH_ATTR StartMDNS();
-
+/**
+ * This is called on boot for versions ESP8266_NONOS_SDK_v1.5.2 to
+ * ESP8266_NONOS_SDK_v2.2.1. system_phy_set_rfoption() may be called here
+ */
 void user_rf_pre_init(void)
 {
-	//nothing.
+	; // nothing
 }
 
-char * strcat( char * dest, char * src )
+
+void ICACHE_FLASH_ATTR user_pre_init(void)
 {
-	return strcat(dest, src );
+    os_printf("user_pre_init()\r\n");
+	LoadDefaultPartitionMap(); //You must load the partition table so the NONOS SDK can find stuff.
 }
-
-
 
 //Tasks that happen all the time.
 
@@ -46,7 +47,11 @@ void ICACHE_FLASH_ATTR SetupMatrix( )
 	tdIdentity( ProjectionMatrix );
 	tdIdentity( ModelviewMatrix );
 
+#ifdef MAGFEST_DEMO
+	Perspective( 1000, 250, 50, 8192, ProjectionMatrix );
+#else
 	Perspective( 600, 250, 50, 8192, ProjectionMatrix );
+#endif
 }
 
  
@@ -80,6 +85,37 @@ void ICACHE_FLASH_ATTR DrawFrame(  )
 	tdIdentity( ModelviewMatrix );
 	tdIdentity( ProjectionMatrix );
 	CNFGColor( 17 );
+
+
+#ifdef MAGFEST_DEMO
+
+	framessostate++;
+
+	CNFGPenX = 5;
+	CNFGPenY = 5;
+	CNFGColor( 11 );
+	CNFGDrawText( "MAGFest 2020", 3 );
+
+	SetupMatrix();
+	tdRotateEA( ProjectionMatrix, -20, 0, 0 );
+	tdRotateEA( ModelviewMatrix, framessostate*1, framessostate*3, 0 );
+
+	for( x = 0; x < 3; x++ )
+	{
+		ModelviewMatrix[11] = 3500;// + tdSIN( framessostate*2 )/2;
+		ModelviewMatrix[3] = 1600*x-1600;
+		ModelviewMatrix[7] = 2300;
+		//DrawGeoSphere();
+		DrawBanana();
+	}
+
+
+	CNFGPenX = 02;
+	CNFGPenY = 200;
+	CNFGColor( 11 );
+	CNFGDrawText( "Welcome to museum.", 2 );
+
+#else
 
 /*
 
@@ -212,7 +248,7 @@ void ICACHE_FLASH_ATTR DrawFrame(  )
 		}
 		break;
 	case 5:
-		ets_memcpy( frontframe, framessostate*(FBW/8)+0x3FFF8000, ((FBW/4)*FBH) );
+		ets_memcpy( frontframe, framessostate*(FBW/8)+(uint8_t*)0x3FFF8000, ((FBW/4)*FBH) );
 		CNFGColor( 17 );
 		CNFGTackRectangle( 70, 110, 180+200, 150 );		
 		CNFGColor( 16 );
@@ -303,13 +339,18 @@ void ICACHE_FLASH_ATTR DrawFrame(  )
 		framessostate++;
 	}
 
+#endif
+
 }
+
+extern int gline, gframe, systimex;
 
 static void ICACHE_FLASH_ATTR procTask(os_event_t *events)
 {
 	static uint8_t lastframe = 0;
 	uint8_t tbuffer = !(gframe&1);
 
+//	ets_printf( "%d %d %d\n", gline, gframe, systimex );
 	CSTick( 0 );
 
 	if( lastframe != tbuffer )
@@ -321,6 +362,7 @@ static void ICACHE_FLASH_ATTR procTask(os_event_t *events)
 		//ets_memset( frontframe, 0xaa, ((FBW/4)*FBH) );
 		lastframe = tbuffer;
 		//printf( "%d\n", system_get_time() - tft );
+		ets_printf( "." );
 	}
 
 	system_os_post(procTaskPrio, 0, 0 );
@@ -368,6 +410,10 @@ void ICACHE_FLASH_ATTR user_init(void)
 //	wifi_set_opmode_current(2);
 //Uncomment this to force a system restore.
 //	system_restore();
+
+#ifdef DISABLE_WIFI
+		wifi_set_opmode(0);
+#else
 
 #ifdef FORCE_SSID
 #define SSID ""
@@ -419,7 +465,8 @@ void ICACHE_FLASH_ATTR user_init(void)
 		while(1) { uart0_sendStr( "\r\nFAULT\r\n" ); }
 	}
 
-	CSInit();
+	CSInit(1);
+#endif
 
 	SetServiceName( "ws2812" );
 	AddMDNSName( "cn8266" );
@@ -435,7 +482,6 @@ void ICACHE_FLASH_ATTR user_init(void)
 	os_timer_disarm(&some_timer);
 	os_timer_setfn(&some_timer, (os_timer_func_t *)myTimer, NULL);
 	os_timer_arm(&some_timer, 100, 1);
-
 
 	testi2s_init();
 

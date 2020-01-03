@@ -15,7 +15,8 @@
 int main()
 {
 
-	uint8_t CbLookup[NTSC_LINES];
+	uint8_t CbLookup[NTSC_LINES+1];
+	CbLookup[NTSC_LINES] = 0;
 	int x;
 	//Setup the callback table.
 	for( x = 0; x < 3; x++ )

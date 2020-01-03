@@ -47,6 +47,7 @@ void ICACHE_FLASH_ATTR tdIdentity( int16_t * matrix );
 void ICACHE_FLASH_ATTR MakeYRotationMatrix( uint8_t angle, int16_t * f );
 void ICACHE_FLASH_ATTR MakeXRotationMatrix( uint8_t angle, int16_t * f );
 void ICACHE_FLASH_ATTR DrawGeoSphere();
+void ICACHE_FLASH_ATTR DrawBanana();
 void ICACHE_FLASH_ATTR Draw3DSegment( int16_t * c1, int16_t * c2 );
 
 int16_t ICACHE_FLASH_ATTR tdPerlin2D( int16_t x, int16_t y );
