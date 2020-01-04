@@ -89,6 +89,7 @@ void ICACHE_FLASH_ATTR DrawFrame(  )
 
 #ifdef MAGFEST_DEMO
 
+#ifdef BANANA1
 	framessostate++;
 
 	CNFGPenX = 5;
@@ -114,6 +115,27 @@ void ICACHE_FLASH_ATTR DrawFrame(  )
 	CNFGPenY = 200;
 	CNFGColor( 11 );
 	CNFGDrawText( "Welcome to museum.", 2 );
+#else
+
+	framessostate++;
+
+	CNFGPenX = 5;
+	CNFGPenY = 5;
+	CNFGColor( (framessostate/8)&0x0f );
+	CNFGDrawText( "MAGFest Is", 3 );
+
+	SetupMatrix();
+	tdRotateEA( ProjectionMatrix, -20, 0, 0 );
+	tdRotateEA( ModelviewMatrix, framessostate*1, framessostate*3, 0 );
+	CNFGColor( 11 );
+
+	ModelviewMatrix[11] = 160;// + tdSIN( framessostate*2 )/2;
+	ModelviewMatrix[3] = 0;
+	ModelviewMatrix[7] = 40;
+	//DrawGeoSphere();
+	DrawBananas();
+
+#endif
 
 #else
 

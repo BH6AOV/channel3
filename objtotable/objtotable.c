@@ -8,10 +8,10 @@ int inds[8192];
 int main()
 {
 	int i;
-	FILE * f = fopen( "banana.obj", "r" );
+	FILE * f = fopen( "bananas.obj", "r" );
 	if( !f )
 	{
-		fprintf( stderr, "Error: Banana.\n" );
+		fprintf( stderr, "Error: Bananas.\n" );
 		return 0;
 	}
 
@@ -33,9 +33,9 @@ int main()
 			float vert[3];
 			sscanf( line, "%s %f %f %f\n", dump, vert+0, vert+1, vert+2 );
 			i = 0;
-			verts[i+vpl] = vert[i] * 700;  i++;
-			verts[i+vpl] = vert[i] * 1000; i++;
-			verts[i+vpl] = vert[i] * 700;  i++;
+			verts[i+vpl] = vert[i] * 100;  i++;
+			verts[i+vpl] = vert[i] * 100; i++;
+			verts[i+vpl] = vert[i] * 100;  i++;
 			vpl += 3;
 		}
 		if( strncmp( line, "f ", 2 ) == 0 )
@@ -49,11 +49,11 @@ int main()
 			inds[ipl++] = atoi( c3 )-1;
 		}
 	}
-	printf( "int16_t verts_banana[%d] = {\n", vpl );
+	printf( "int16_t verts_bananas[%d] = {\n", vpl );
 	for( i = 0; i < vpl; i+=3 )
 		printf( "%4d,%4d,%4d,  %c", verts[i+0], verts[i+1], verts[i+2], ((i-1)&3)?' ':'\n' );
 	printf( "};\n" );
-	printf( "const uint8_t indices_banana[%d] = {\n", vpl );
+	printf( "const uint8_t indices_bananas[%d] = {\n", vpl );
 	for( i = 0; i < ipl; i+=3 )
 		printf( "%3d,%3d,%3d,  %c", inds[i+0], inds[i+1], inds[i+2], ((i-1)&3)?' ':'\n' );
 	printf( "};\n" );
